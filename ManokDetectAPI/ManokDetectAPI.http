@@ -1,0 +1,6 @@
+@ManokDetectAPI_HostAddress = http://localhost:5093
+
+GET {{ManokDetectAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
