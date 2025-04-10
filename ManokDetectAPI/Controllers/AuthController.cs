@@ -1,6 +1,7 @@
 ﻿using ManokDetectAPI.Entities;
 using ManokDetectAPI.Models;
 using ManokDetectAPI.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,6 +31,21 @@ namespace ManokDetectAPI.Controllers
                 return BadRequest("Invalid Credentials");
             }
             return Ok(token);
+        }
+
+
+        [Authorize(Roles = "Vet")]
+        [HttpGet("vet-only")]
+        public IActionResult VetOnlyEndpoint()
+        {
+            return Ok("This can be accessed only by vets");
+        }
+
+        [Authorize(Roles = "Farmer")]
+        [HttpGet("farmer-only")]
+        public IActionResult FarmerOnlyEndpoint()
+        {
+            return Ok("This can be accessed only by farmers");
         }
     }
 }

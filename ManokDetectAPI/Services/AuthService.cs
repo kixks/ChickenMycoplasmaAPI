@@ -32,7 +32,8 @@ namespace ManokDetectAPI.Services
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.MobilePhone, user.MobileNumber),
-                new Claim(ClaimTypes.NameIdentifier, user.securityID.ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.securityID.ToString()),
+                new Claim(ClaimTypes.Role, user.UserType)
             };
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration.GetValue<string>("Appsettings:Token")!));
