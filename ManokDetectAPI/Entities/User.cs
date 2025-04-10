@@ -10,6 +10,9 @@
         public string? Address { get; set; }
         public string MobileNumber { get; set; }
         public string? UserType { get; set; }
+        public string? RefreshToken { get; set; }
+        public string? RefreshTokenExpiryTime { get; set; }
+
 
     }
 }

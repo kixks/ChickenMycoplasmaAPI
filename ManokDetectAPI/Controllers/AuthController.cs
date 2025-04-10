@@ -23,14 +23,14 @@ namespace ManokDetectAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<User>>Login (userLoginDto request)
+        public async Task<ActionResult<TokenResponseDto>>Login (userLoginDto request)
         {
-            var token = await authService.LoginAsync(request);
-            if(token is null)
+            var result = await authService.LoginAsync(request);
+            if(result is null)
             {
                 return BadRequest("Invalid Credentials");
             }
-            return Ok(token);
+            return Ok(result);
         }
 
 
@@ -46,6 +46,17 @@ namespace ManokDetectAPI.Controllers
         public IActionResult FarmerOnlyEndpoint()
         {
             return Ok("This can be accessed only by farmers");
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RequestRefreshTokenDto request)
+        {
+            var result = await authService.RefreshTokenAsync(request);
+            if(result is null || result.AccessToken is null || result.RefreshToken is null)
+            {
+                return Unauthorized("Invalid Refresh Token");
+            }
+            return Ok(result);
         }
     }
 }

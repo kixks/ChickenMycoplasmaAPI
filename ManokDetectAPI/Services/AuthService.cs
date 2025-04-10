@@ -1,5 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using ManokDetectAPI.Entities;
 using ManokDetectAPI.Model;
@@ -12,19 +13,68 @@ namespace ManokDetectAPI.Services
 {
     public class AuthService(manokDetectDBContext context, IConfiguration configuration) : IAuthService
     {
-        public async Task<string?> LoginAsync(userLoginDto request)
+        public async Task<TokenResponseDto?> LoginAsync(userLoginDto request)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.MobileNumber == request.MobileNumber);
-            if(user is null)
+            if (user is null)
             {
                 return null;
             }
-            if(new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
+            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
                 == PasswordVerificationResult.Failed)
             {
                 return null;
             }
-            return CreateToken(user);
+            return await CreateTokenResponse(user);
+        }
+
+        private async Task<TokenResponseDto> CreateTokenResponse(User user)
+        {
+            return new TokenResponseDto
+            {
+                AccessToken = CreateToken(user),
+                RefreshToken = await SaveRefreshTokenAsync(user)
+            };
+        }
+
+        private string GenerateRefreshToken()
+        {
+            var randomNumber = new byte[32];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
+        }
+
+        private async Task<string> SaveRefreshTokenAsync(User user)
+        {
+            var refreshToken = GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            context.Users.Update(user);
+            await context.SaveChangesAsync();
+            return refreshToken;
+        }
+        public async Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshTokenDto request)
+        {
+            var user = await ValidateRefreshTokenAsync(request.securityID, request.RefreshToken);
+            if(user is null)
+            {
+                return null;
+            }
+            return await CreateTokenResponse(user);
+        }
+
+        private async Task<User?> ValidateRefreshTokenAsync(Guid securityID, string refreshToken)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(s => s.securityID == securityID);
+            if (user is null || user.RefreshToken != refreshToken
+                || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+            {
+                return null;
+            }
+            return user;
         }
 
         private string CreateToken(User user)
@@ -74,5 +124,6 @@ namespace ManokDetectAPI.Services
             return user;
 
         }
+
     }
 }

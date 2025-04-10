@@ -6,7 +6,7 @@ namespace ManokDetectAPI.Services
     public interface IAuthService
     {
         Task<User?> RegisterAsync(userRegisterDto request);
-        Task<string?> LoginAsync (userLoginDto request);
-
+        Task<TokenResponseDto?> LoginAsync (userLoginDto request);
+        Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshTokenDto request);
     }
 }
