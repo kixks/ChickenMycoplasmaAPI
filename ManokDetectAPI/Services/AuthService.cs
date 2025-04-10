@@ -56,10 +56,10 @@ namespace ManokDetectAPI.Services
             await context.SaveChangesAsync();
             return refreshToken;
         }
-        public async Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshTokenDto request)
+        public async Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshDto request)
         {
             var user = await ValidateRefreshTokenAsync(request.securityID, request.RefreshToken);
-            if(user is null)
+            if (user is null)
             {
                 return null;
             }

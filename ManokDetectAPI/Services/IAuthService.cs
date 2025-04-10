@@ -7,6 +7,6 @@ namespace ManokDetectAPI.Services
     {
         Task<User?> RegisterAsync(userRegisterDto request);
         Task<TokenResponseDto?> LoginAsync (userLoginDto request);
-        Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshTokenDto request);
+        Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshDto request);
     }
 }

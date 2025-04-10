@@ -11,7 +11,8 @@
         public string MobileNumber { get; set; }
         public string? UserType { get; set; }
         public string? RefreshToken { get; set; }
-        public string? RefreshTokenExpiryTime { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
+        public string? ImageUrl { get; set; }
 
 
     }

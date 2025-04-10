@@ -49,7 +49,7 @@ namespace ManokDetectAPI.Controllers
         }
 
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RequestRefreshTokenDto request)
+        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RequestRefreshDto request)
         {
             var result = await authService.RefreshTokenAsync(request);
             if(result is null || result.AccessToken is null || result.RefreshToken is null)
