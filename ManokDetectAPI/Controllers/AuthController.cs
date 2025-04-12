@@ -1,8 +1,10 @@
-﻿using ManokDetectAPI.Entities;
+﻿using System.Security.Claims;
+using ManokDetectAPI.Entities;
 using ManokDetectAPI.Models;
 using ManokDetectAPI.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManokDetectAPI.Controllers
@@ -58,5 +60,53 @@ namespace ManokDetectAPI.Controllers
             }
             return Ok(result);
         }
+
+        [HttpGet("signin-google")]
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                // This is where you want users to end up after auth
+                RedirectUri = "/api/Auth/google-callback"
+            };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("google-callback")]
+        public async Task<IActionResult> GoogleCallback()
+        {
+            // Authenticate with Google
+            var authResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!authResult.Succeeded)
+            {
+                return BadRequest("Google auth failed");
+            }
+
+            // Extract claims
+            var email = authResult.Principal.FindFirstValue(ClaimTypes.Email);
+            var name = authResult.Principal.FindFirstValue(ClaimTypes.Name);
+
+            // Find/create user
+            var user = await authService.FindOrRegisterGoogleUser(email!, name!);
+            if (user == null)
+            {
+                return BadRequest("User creation failed");
+            }               
+
+            var concreteAuthService = authService as AuthService;
+            if (concreteAuthService == null)
+            {
+                return StatusCode(500, "Internal auth service error");
+            }
+
+            var tokens = await concreteAuthService.GenerateTokenForGoogleUser(user);
+
+            await HttpContext.SignOutAsync();
+
+            return Ok(tokens);
+        }
+
+
+
     }
 }
