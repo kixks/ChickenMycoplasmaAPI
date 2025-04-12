@@ -13,21 +13,7 @@ namespace ManokDetectAPI.Services
 {
     public class AuthService(manokDetectDBContext context, IConfiguration configuration) : IAuthService
     {
-        public async Task<TokenResponseDto?> LoginAsync(userLoginDto request)
-        {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.MobileNumber == request.MobileNumber);
-            if (user is null)
-            {
-                return null;
-            }
-            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
-                == PasswordVerificationResult.Failed)
-            {
-                return null;
-            }
-            return await CreateTokenResponse(user);
-        }
-
+        //private methods--------------------------------------------------------------------
         private async Task<TokenResponseDto> CreateTokenResponse(User user)
         {
             return new TokenResponseDto
@@ -56,15 +42,6 @@ namespace ManokDetectAPI.Services
             await context.SaveChangesAsync();
             return refreshToken;
         }
-        public async Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshDto request)
-        {
-            var user = await ValidateRefreshTokenAsync(request.securityID, request.RefreshToken);
-            if (user is null)
-            {
-                return null;
-            }
-            return await CreateTokenResponse(user);
-        }
 
         private async Task<User?> ValidateRefreshTokenAsync(Guid securityID, string refreshToken)
         {
@@ -81,9 +58,9 @@ namespace ManokDetectAPI.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.MobilePhone, user.MobileNumber),
+                new Claim(ClaimTypes.MobilePhone, user.MobileNumber!),
                 new Claim(ClaimTypes.NameIdentifier, user.securityID.ToString()),
-                new Claim(ClaimTypes.Role, user.UserType)
+                new Claim(ClaimTypes.Role, user.UserType!)
             };
             var key = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(configuration.GetValue<string>("Appsettings:Token")!));
@@ -99,6 +76,24 @@ namespace ManokDetectAPI.Services
                 );
 
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
+        }
+        //----------------------------------------------------------------------------------------
+
+
+        //public methods-----------------------------------------------------------------------
+        public async Task<TokenResponseDto?> LoginAsync(userLoginDto request)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.MobileNumber == request.MobileNumber);
+            if (user is null)
+            {
+                return null;
+            }
+            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
+                == PasswordVerificationResult.Failed)
+            {
+                return null;
+            }
+            return await CreateTokenResponse(user);
         }
 
         public async Task<User?> RegisterAsync(userRegisterDto request)
@@ -124,6 +119,41 @@ namespace ManokDetectAPI.Services
             return user;
 
         }
+        public async Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshDto request)
+        {
+            var user = await ValidateRefreshTokenAsync(request.securityID, request.RefreshToken);
+            if (user is null)
+            {
+                return null;
+            }
+            return await CreateTokenResponse(user);
+        }
 
+        public async Task<User> FindOrRegisterGoogleUser(string email, string name)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if(user is null)
+            {
+                user = new User
+                {
+                    Email = email,
+                    Name = name,
+                    securityID = Guid.NewGuid(),
+                    Address = "",
+                    MobileNumber = "",
+                    UserType = "Farmer",
+                    PasswordHash = ""
+                };
+                context.Users.Add(user);
+                await context.SaveChangesAsync();
+            }
+            return user;
+        }
+        public async Task<TokenResponseDto>GenerateTokenForGoogleUser(User user)
+        {
+            return await CreateTokenResponse(user);
+        }
+
+        //-------------------------------------------------------------------------------------
     }
 }
