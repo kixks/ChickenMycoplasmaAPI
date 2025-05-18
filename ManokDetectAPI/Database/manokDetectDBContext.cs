@@ -1,7 +1,7 @@
 ﻿using ManokDetectAPI.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace ManokDetectAPI.Model
+namespace ManokDetectAPI.Database
 {
     public class manokDetectDBContext(DbContextOptions<manokDetectDBContext>options) : DbContext(options)
     {

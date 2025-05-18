@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using ManokDetectAPI.Entities;
-using ManokDetectAPI.Model;
+using ManokDetectAPI.Database;
 using ManokDetectAPI.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

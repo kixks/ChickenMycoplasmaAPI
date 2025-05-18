@@ -1,5 +1,5 @@
 using System.Text;
-using ManokDetectAPI.Model;
+using ManokDetectAPI.Database;
 using ManokDetectAPI.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+using ManokDetectAPI.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,8 +62,11 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.CheckConsentNeeded = context => false; // Required for OAuth
 });
 
+builder.Services.AddSignalR();
 
 var app = builder.Build();
+
+app.MapHub<ChatHub>("/chathub");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
