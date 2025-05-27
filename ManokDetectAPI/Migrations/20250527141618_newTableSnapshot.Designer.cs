@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManokDetectAPI.Migrations
 {
     [DbContext(typeof(manokDetectDBContext))]
-    [Migration("20250518093055_messagingNew")]
-    partial class messagingNew
+    [Migration("20250527141618_newTableSnapshot")]
+    partial class newTableSnapshot
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,6 +45,30 @@ namespace ManokDetectAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("ManokDetectAPI.Entities.Snapshot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("farmerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("snapshot")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("farmerId");
+
+                    b.ToTable("Snapshots");
                 });
 
             modelBuilder.Entity("ManokDetectAPI.Entities.User", b =>
@@ -88,6 +112,22 @@ namespace ManokDetectAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ManokDetectAPI.Entities.Snapshot", b =>
+                {
+                    b.HasOne("ManokDetectAPI.Entities.User", "Farmer")
+                        .WithMany("Snapshots")
+                        .HasForeignKey("farmerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Farmer");
+                });
+
+            modelBuilder.Entity("ManokDetectAPI.Entities.User", b =>
+                {
+                    b.Navigation("Snapshots");
                 });
 #pragma warning restore 612, 618
         }

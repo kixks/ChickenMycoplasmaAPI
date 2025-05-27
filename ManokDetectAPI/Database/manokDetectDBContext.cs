@@ -7,5 +7,6 @@ namespace ManokDetectAPI.Database
     {
         public DbSet<User> Users => Set<User>();
         public DbSet<Message> Messages => Set<Message>();
+        public DbSet<Snapshot> Snapshots => Set<Snapshot>();
     }
 }

@@ -13,6 +13,7 @@
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
         public string? ImageUrl { get; set; }
+        public ICollection<Snapshot> Snapshots { get; set; }
 
 
     }

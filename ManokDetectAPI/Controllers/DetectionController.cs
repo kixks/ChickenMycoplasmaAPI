@@ -1,4 +1,5 @@
 ﻿using ManokDetectAPI.Database;
+using ManokDetectAPI.Entities;
 using ManokDetectAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,20 +26,33 @@ namespace ManokDetectAPI.Controllers
 
 
         [HttpPost("upload-snapshot")]
-        //public IActionResult UploadSnapshot([FromBody] SnapshotRequest request)
-        //{
-        //    var base64Image = request.Snapshot;
-        //    var farmerId = request.FarmerId;
 
-        //    if (string.IsNullOrEmpty(base64Image) || string.IsNullOrEmpty(farmerId))
-        //        return BadRequest("Missing data");
+        public IActionResult UploadSnapshot([FromBody] SnapshotRequestDto request)
+        {
+            var base64Image = request.snapshot;
+            var farmerId = request.farmerId;
 
-        //    var bytes = Convert.FromBase64String(base64Image);
-        //    var filePath = $"Snapshots/{farmerId}_{DateTime.Now.Ticks}.jpg";
-        //    System.IO.File.WriteAllBytes(filePath, bytes);
+            if (string.IsNullOrEmpty(base64Image) || farmerId == 0)
+                return BadRequest("Missing data");
 
-        //    return Ok(new { status = "success", path = filePath });
-        //}
+            var bytes = Convert.FromBase64String(base64Image);
+            var fileName = $"{farmerId}_{DateTime.UtcNow.Ticks}.jpg";
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Snapshots");
+            Directory.CreateDirectory(folderPath); // ensure the folder exists
+            var filePath = Path.Combine(folderPath, fileName);
+            System.IO.File.WriteAllBytes(filePath, bytes);
+
+            var snapshot = new Snapshot
+            {
+                farmerId = farmerId,
+                snapshot = Path.Combine("Snapshots", fileName)
+            };
+
+            _context.Snapshots.Add(snapshot);
+            _context.SaveChanges();
+
+            return Ok(new { status = "success", path = snapshot.snapshot });
+        }
 
 
 
