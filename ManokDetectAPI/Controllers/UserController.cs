@@ -20,7 +20,7 @@ namespace ManokDetectAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> getUser(int id)
+        public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
@@ -30,7 +30,7 @@ namespace ManokDetectAPI.Controllers
             return Ok(user);
         }
         [HttpPut]
-        public async Task<ActionResult<User>> updateUser([FromBody] userUpdateDto request)
+        public async Task<ActionResult<User>> UpdateUser([FromBody] userUpdateDto request)
         {
             var user = await _context.Users.FindAsync(request.Id);
 

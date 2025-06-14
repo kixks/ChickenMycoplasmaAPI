@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Snapshots\" />
+    <Folder Include="wwwroot\Snapshots\" />
   </ItemGroup>
 
 </Project>

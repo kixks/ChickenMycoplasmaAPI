@@ -3,6 +3,7 @@ using ManokDetectAPI.Entities;
 using ManokDetectAPI.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManokDetectAPI.Controllers
 {
@@ -38,8 +39,10 @@ namespace ManokDetectAPI.Controllers
 
             var bytes = Convert.FromBase64String(base64Image);
             var fileName = $"{farmerId}_{DateTime.UtcNow.Ticks}.jpg";
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Snapshots");
+
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot" ,"Snapshots");
             Directory.CreateDirectory(folderPath); // ensure the folder exists
+
             var filePath = Path.Combine(folderPath, fileName);
             System.IO.File.WriteAllBytes(filePath, bytes);
 
@@ -56,6 +59,20 @@ namespace ManokDetectAPI.Controllers
             return Ok(new { status = "success", path = snapshot.snapshot });
         }
 
+        [HttpGet("{id}")]
+        public async Task<ActionResult<IEnumerable<SnapshotResponseDTO>>> SendDetectedSymptomatic(int id)
+        {
+            var snapshots = await _context.Snapshots.Where(s => s.farmerId == id).OrderByDescending(s => s.CreatedAt).Select(s => new SnapshotResponseDTO
+            {
+                Id = s.Id,
+                SnapshotUrl = $"https://localhost:7165/Snapshots/{Path.GetFileName(s.snapshot)}",
+                ConfidenceScore = s.confidenceScore,
+                CreatedAt = s.CreatedAt
+            }).ToListAsync();
+
+            return Ok(snapshots);
+
+        }
 
 
     }
