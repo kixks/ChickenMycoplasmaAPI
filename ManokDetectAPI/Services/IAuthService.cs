@@ -1,5 +1,5 @@
 ﻿using ManokDetectAPI.Entities;
-using ManokDetectAPI.Models;
+using ManokDetectAPI.DTO;
 
 namespace ManokDetectAPI.Services
 {

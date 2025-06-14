@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 using ManokDetectAPI.Entities;
-using ManokDetectAPI.Models;
+using ManokDetectAPI.DTO;
 using ManokDetectAPI.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;

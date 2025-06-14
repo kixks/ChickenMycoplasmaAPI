@@ -13,5 +13,6 @@ namespace ManokDetectAPI.Entities
         public User Farmer { get; set; }
         public string? snapshot { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public String confidenceScore { get; set; }
     }
 }

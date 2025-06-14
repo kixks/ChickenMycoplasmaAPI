@@ -1,6 +1,6 @@
 ﻿using ManokDetectAPI.Database;
 using ManokDetectAPI.Entities;
-using ManokDetectAPI.Models;
+using ManokDetectAPI.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +31,7 @@ namespace ManokDetectAPI.Controllers
         {
             var base64Image = request.snapshot;
             var farmerId = request.farmerId;
+            var confidenceScore = request.confidenceScore;
 
             if (string.IsNullOrEmpty(base64Image) || farmerId == 0)
                 return BadRequest("Missing data");
@@ -45,7 +46,8 @@ namespace ManokDetectAPI.Controllers
             var snapshot = new Snapshot
             {
                 farmerId = farmerId,
-                snapshot = Path.Combine("Snapshots", fileName)
+                snapshot = Path.Combine("Snapshots", fileName),
+                confidenceScore = confidenceScore
             };
 
             _context.Snapshots.Add(snapshot);

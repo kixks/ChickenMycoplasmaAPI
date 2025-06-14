@@ -1,4 +1,4 @@
-﻿namespace ManokDetectAPI.Models
+﻿namespace ManokDetectAPI.DTO
 {
     public class VerifyFarmerDTO
     {

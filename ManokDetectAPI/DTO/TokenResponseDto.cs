@@ -1,6 +1,6 @@
 ﻿using Azure.Core;
 
-namespace ManokDetectAPI.Models
+namespace ManokDetectAPI.DTO
 {
     public class TokenResponseDto
     {

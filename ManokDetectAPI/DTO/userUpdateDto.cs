@@ -1,12 +1,13 @@
-﻿namespace ManokDetectAPI.Models
+﻿namespace ManokDetectAPI.DTO
 {
-    public class userRegisterDto
+    public class userUpdateDto
     {
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
-        public string Password { get; set; } // Plaintext, temporary
         public string Address { get; set; }
         public string MobileNumber { get; set; }
+        public string Password { get; set; } // Plaintext, temporary
 
     }
 }

@@ -63,6 +63,8 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 
 builder.Services.AddSignalR();
+builder.Services.AddHttpClient();
+
 
 var app = builder.Build();
 

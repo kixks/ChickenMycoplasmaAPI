@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ManokDetectAPI.Entities;
 using ManokDetectAPI.Database;
-using ManokDetectAPI.Models;
+using ManokDetectAPI.DTO;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
