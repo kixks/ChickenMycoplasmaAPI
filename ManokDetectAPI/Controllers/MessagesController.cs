@@ -18,61 +18,34 @@ namespace ManokDetectAPI.Controllers
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
 
-        public MessagesController(manokDetectDBContext context , IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        public MessagesController(manokDetectDBContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Message>>> GetMessages()
+        //[HttpGet("{userName}")]
+        //public async Task<ActionResult<IEnumerable<Message>>> GetMessages(string userName)
+        //{
+        //    var filteredMessages = await _context.Messages
+        //        .Where(m => m.User == userName || m.Recipient == userName)
+        //        .OrderBy(m => m.Timestamp)
+        //        .ToListAsync();
+
+        //    return filteredMessages;
+        //}
+
+        [HttpGet("conversation/{user1}/{user2}")]
+        public async Task<ActionResult<IEnumerable<Message>>> GetConversation(string user1, string user2)
         {
-            return await _context.Messages.OrderBy(m => m.Timestamp).ToListAsync();
+            return await _context.Messages
+                .Where(m => (m.User == user1 && m.Recipient == user2) || (m.User == user2 && m.Recipient == user1))
+                .OrderBy(m => m.Timestamp)
+                .ToListAsync();
         }
 
-        [HttpPost]
-
-        public async Task<IActionResult> SendSMS([FromBody] SendSmsDto request)
-        {
-            //looking up for the farmers phone number
-            var farmer = await _context.Users.FirstOrDefaultAsync(f => f.Id == request.farmerId);
-
-            if (farmer == null)
-            {
-                return NotFound(new { message = "Farmer Not Found" });
-            }
-
-            var mobileNumber = farmer.MobileNumber;
-
-            if (mobileNumber == null)
-            {
-                return NotFound(new { message = "Mobile Number Not Found Please Go to Settings to Update" });
-            }
-
-            var messageToSent = request.MessageContent;
-            var apiToken = _configuration["SmsToken:api_token"];
-
-            var smsPayload = new
-            {
-                api_token = apiToken,
-                phone_number = mobileNumber,
-                message = messageToSent,
-            };
-
-            var client = _httpClientFactory.CreateClient();
-            var response = await client.PostAsJsonAsync("https://sms.iprogtech.com/api/v1/sms_messages", smsPayload);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var error = await response.Content.ReadAsStringAsync();
-                return StatusCode((int)response.StatusCode, $"SMS API Error: {error}");
-            }
-
-            return Ok(new { status = "User has been notified!", to = mobileNumber });
-
-
-        }
+        
     }
 
 

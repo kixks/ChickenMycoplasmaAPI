@@ -18,16 +18,44 @@ namespace ManokDetectAPI.Controllers
         {
             _context = context;
         }
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<userDto>>> GetAllUsers()
+        {
+            var users = await _context.Users
+                .Select(user => new userDto
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Address = user.Address,
+                    MobileNumber = user.MobileNumber,
+                    UserType = user.UserType,
+                    securityID = user.securityID
+                })
+                .ToListAsync();
+
+            return Ok(users);
+        }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<userDto>> GetUser(int id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
-            return Ok(user);
+            var userDetails = new userDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Address = user.Address,
+                MobileNumber = user.MobileNumber,
+                UserType = user.UserType,
+                securityID = user.securityID
+            };
+            return Ok(userDetails);
         }
         [HttpPut]
         public async Task<ActionResult<User>> UpdateUser([FromBody] userUpdateDto request)

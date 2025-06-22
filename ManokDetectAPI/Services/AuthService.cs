@@ -19,7 +19,18 @@ namespace ManokDetectAPI.Services
             return new TokenResponseDto
             {
                 AccessToken = CreateToken(user),
-                RefreshToken = await SaveRefreshTokenAsync(user)
+                RefreshToken = await SaveRefreshTokenAsync(user),
+                User = new userDto
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Email = user.Email,
+                    Address = user.Address,
+                    MobileNumber = user.MobileNumber,
+                    UserType = user.UserType,
+                    securityID = user.securityID,
+
+                }
             };
         }
 
@@ -96,7 +107,7 @@ namespace ManokDetectAPI.Services
             return await CreateTokenResponse(user);
         }
 
-        public async Task<User?> RegisterAsync(userRegisterDto request)
+        public async Task<userDto?> RegisterAsync(userRegisterDto request)
         {
             if (await context.Users.AnyAsync(u => u.MobileNumber == request.MobileNumber))
             {
@@ -111,12 +122,22 @@ namespace ManokDetectAPI.Services
             user.Address = request.Address;
             user.MobileNumber = request.MobileNumber;
             user.PasswordHash = hashedPassword;
-            user.securityID = Guid.NewGuid();    
+            user.securityID = Guid.NewGuid();
+            user.UserType = "Farmer";
 
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
-            return user;
+            return new userDto
+            {
+                Id = user.Id,
+                Name = user.Name,
+                Email = user.Email,
+                Address = user.Address,
+                MobileNumber = user.MobileNumber,
+                UserType = user.UserType,
+                securityID = user.securityID
+            };
 
         }
         public async Task<TokenResponseDto?> RefreshTokenAsync(RequestRefreshDto request)
@@ -152,6 +173,17 @@ namespace ManokDetectAPI.Services
         public async Task<TokenResponseDto>GenerateTokenForGoogleUser(User user)
         {
             return await CreateTokenResponse(user);
+        }
+        public async Task<User?> GetUserBySecurityIdAsync(Guid securityID)
+        {
+            return await context.Users.FirstOrDefaultAsync(u => u.securityID == securityID);
+
+        }
+
+        public async Task UpdateUserAsync(User user)
+        {
+            context.Users.Update(user);
+            await context.SaveChangesAsync();
         }
 
         //-------------------------------------------------------------------------------------

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using System.Text;
 
 namespace ManokDetectAPI.Controllers
 {
@@ -100,10 +102,38 @@ namespace ManokDetectAPI.Controllers
             }
 
             var tokens = await concreteAuthService.GenerateTokenForGoogleUser(user);
+            var json = JsonSerializer.Serialize(tokens);
+            var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
 
             await HttpContext.SignOutAsync();
 
-            return Ok(tokens);
+            return Redirect($"http://localhost:5173/google-auth-success?data={base64}");
+
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var securityIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (securityIdClaim == null || !Guid.TryParse(securityIdClaim, out var securityId))
+            {
+                return Unauthorized("Invalid user context.");
+            }
+
+            var user = await authService.GetUserBySecurityIdAsync(securityId);
+            if (user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+
+            await authService.UpdateUserAsync(user);
+
+            return Ok("Logged out successfully.");
         }
 
 

@@ -12,10 +12,14 @@ namespace ManokDetectAPI.Controllers
     public class DetectionController : ControllerBase
     {
         private readonly manokDetectDBContext _context;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
 
-        public DetectionController(manokDetectDBContext context)
+        public DetectionController(manokDetectDBContext context, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
         }
 
         [HttpPost("check-farmer-id")]
@@ -28,7 +32,7 @@ namespace ManokDetectAPI.Controllers
 
         [HttpPost("upload-snapshot")]
 
-        public IActionResult UploadSnapshot([FromBody] SnapshotRequestDto request)
+        public async Task<IActionResult> UploadSnapshot([FromBody] SnapshotRequestDto request)
         {
             var base64Image = request.snapshot;
             var farmerId = request.farmerId;
@@ -56,6 +60,15 @@ namespace ManokDetectAPI.Controllers
             _context.Snapshots.Add(snapshot);
             _context.SaveChanges();
 
+            try
+            {
+                await SendSmsNotification(farmerId, "ALERT: Please login to the website and check the uploaded snapshot immediately.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SMS ERROR] Failed to send SMS to farmerId {farmerId}: {ex.Message}");
+            }
+
             return Ok(new { status = "success", path = snapshot.snapshot });
         }
 
@@ -74,6 +87,35 @@ namespace ManokDetectAPI.Controllers
 
         }
 
+        private async Task SendSmsNotification(int farmerId, string message)
+        {
+            var farmer = await _context.Users.FirstOrDefaultAsync(f => f.Id == farmerId);
+            if (farmer == null || string.IsNullOrEmpty(farmer.MobileNumber))
+            {
+                Console.WriteLine("Farmer not found or no mobile number.");
+                return;
+            }
+
+            var smsPayload = new
+            {
+                api_token = _configuration["SmsToken:api_token"],
+                phone_number = farmer.MobileNumber,
+                message = message,
+            };
+
+            var client = _httpClientFactory.CreateClient();
+            var response = await client.PostAsJsonAsync("https://sms.iprogtech.com/api/v1/sms_messages", smsPayload);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Failed to send SMS: {error}");
+            }
+            else
+            {
+                Console.WriteLine("SMS sent successfully.");
+            }
+        }
 
     }
 }
