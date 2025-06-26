@@ -96,6 +96,12 @@ namespace ManokDetectAPI.Controllers
                 return;
             }
 
+            if (farmer.LastSmsSentAt.HasValue && (DateTime.UtcNow - farmer.LastSmsSentAt.Value).TotalMinutes < 1)
+            {
+                Console.WriteLine($"SMS not sent: Cooldown active for farmerId {farmerId}.");
+                return;
+            }
+
             var smsPayload = new
             {
                 api_token = _configuration["SmsToken:api_token"],

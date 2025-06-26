@@ -15,6 +15,7 @@
         public string? ImageUrl { get; set; }
         public ICollection<Snapshot> Snapshots { get; set; }
 
+        public DateTime? LastSmsSentAt { get; set; }
 
     }
 }
