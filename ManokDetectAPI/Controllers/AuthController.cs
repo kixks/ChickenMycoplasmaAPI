@@ -69,7 +69,7 @@ namespace ManokDetectAPI.Controllers
             var properties = new AuthenticationProperties
             {
                 // This is where you want users to end up after auth
-                RedirectUri = "/api/Auth/google-callback"
+                RedirectUri = "https://kingfish-wealthy-calf.ngrok-free.app/api/Auth/google-callback"
             };
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
