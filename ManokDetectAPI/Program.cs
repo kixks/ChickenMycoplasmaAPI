@@ -16,7 +16,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://kingfish-wealthy-calf.ngrok-free.app").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
+        policy.WithOrigins("http://localhost:5173", "https://kingfish-wealthy-calf.ngrok-free.app", "https://mycocheck.netlify.app").AllowAnyHeader().AllowAnyMethod().AllowCredentials();
     });
 });
 

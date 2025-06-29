@@ -60,9 +60,13 @@ namespace ManokDetectAPI.Controllers
             _context.Snapshots.Add(snapshot);
             _context.SaveChanges();
 
+            var snapshotUrl = $"https://kingfish-wealthy-calf.ngrok-free.app/Snapshots/{fileName}";
+
+
             try
             {
-                await SendSmsNotification(farmerId, "ALERT: Please login to the website and check the uploaded snapshot immediately.");
+                var message = $"ALERT: A symptom was detected on a chicken. View: {snapshotUrl}";
+                await SendSmsNotification(farmerId, message);
             }
             catch (Exception ex)
             {
@@ -75,12 +79,14 @@ namespace ManokDetectAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<SnapshotResponseDTO>>> SendDetectedSymptomatic(int id)
         {
+            var timezone = TimeZoneInfo.FindSystemTimeZoneById("Singapore"); // UTC+8
+
             var snapshots = await _context.Snapshots.Where(s => s.farmerId == id).OrderByDescending(s => s.CreatedAt).Select(s => new SnapshotResponseDTO
             {
                 Id = s.Id,
-                SnapshotUrl = $"https://localhost:7165/Snapshots/{Path.GetFileName(s.snapshot)}",
+                SnapshotUrl = $"https://kingfish-wealthy-calf.ngrok-free.app/Snapshots/{Path.GetFileName(s.snapshot)}",
                 ConfidenceScore = s.confidenceScore,
-                CreatedAt = s.CreatedAt
+                CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(s.CreatedAt, timezone)
             }).ToListAsync();
 
             return Ok(snapshots);

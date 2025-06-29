@@ -107,7 +107,7 @@ namespace ManokDetectAPI.Controllers
 
             await HttpContext.SignOutAsync();
 
-            return Redirect($"http://localhost:5173/google-auth-success?data={base64}");
+            return Redirect($"https://mycocheck.netlify.app/google-auth-success?data={base64}");
 
         }
 
