@@ -10,14 +10,53 @@ namespace ManokDetectAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class UserController : ControllerBase
     {
         private readonly manokDetectDBContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public UserController(manokDetectDBContext context)
+
+        public UserController(manokDetectDBContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
+
+        [HttpGet("dataset-images")]
+        public IActionResult GetDatasetImages(
+    [FromQuery] int limit = 40,
+    [FromQuery] int offset = 0)
+        {
+            var folderPath = Path.Combine(_env.WebRootPath, "datasets");
+            if (!Directory.Exists(folderPath))
+                return NotFound("Datasets folder not found.");
+
+            var allFiles = Directory.GetFiles(folderPath)
+                                    .Where(f =>
+                                        f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                                        f.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
+                                        f.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                                    .Select(Path.GetFileName)
+                                    .ToList();
+
+            var pagedFiles = allFiles
+                .Skip(offset)
+                .Take(limit)
+                .ToList();
+
+            var imageUrls = pagedFiles.Select(file =>
+                $"{Request.Scheme}://{Request.Host}/datasets/{file}"
+            );
+
+            return Ok(new
+            {
+                total = allFiles.Count,
+                count = imageUrls.Count(),
+                data = imageUrls
+            });
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<userDto>>> GetAllUsers()
         {

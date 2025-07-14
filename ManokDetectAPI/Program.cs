@@ -27,7 +27,6 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = null; // Keep PascalCase
     });
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<manokDetectDBContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

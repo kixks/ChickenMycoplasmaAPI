@@ -71,6 +71,10 @@ namespace ManokDetectAPI.Migrations
                     b.Property<string>("snapshot")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("farmerId");

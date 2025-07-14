@@ -37,6 +37,7 @@ namespace ManokDetectAPI.Controllers
             var base64Image = request.snapshot;
             var farmerId = request.farmerId;
             var confidenceScore = request.confidenceScore;
+            var status = request.status;
 
             if (string.IsNullOrEmpty(base64Image) || farmerId == 0)
                 return BadRequest("Missing data");
@@ -54,19 +55,21 @@ namespace ManokDetectAPI.Controllers
             {
                 farmerId = farmerId,
                 snapshot = Path.Combine("Snapshots", fileName),
-                confidenceScore = confidenceScore
+                confidenceScore = confidenceScore,
+                status = status
             };
 
             _context.Snapshots.Add(snapshot);
             _context.SaveChanges();
 
-            var snapshotUrl = $"https://kingfish-wealthy-calf.ngrok-free.app/Snapshots/{fileName}";
+            var snapshotUrl = $"https://kingfish-wealthy-calf.ngrok-free.app/api/Detection/snapshot-proxy/{fileName}";
 
 
             try
             {
-                var message = $"ALERT: A symptom was detected on a chicken. View: {snapshotUrl}";
+                var message = $"View: {snapshotUrl}";
                 await SendSmsNotification(farmerId, message);
+
             }
             catch (Exception ex)
             {
@@ -84,13 +87,45 @@ namespace ManokDetectAPI.Controllers
             var snapshots = await _context.Snapshots.Where(s => s.farmerId == id).OrderByDescending(s => s.CreatedAt).Select(s => new SnapshotResponseDTO
             {
                 Id = s.Id,
-                SnapshotUrl = $"https://kingfish-wealthy-calf.ngrok-free.app/Snapshots/{Path.GetFileName(s.snapshot)}",
+                SnapshotUrl = $"https://kingfish-wealthy-calf.ngrok-free.app/api/Detection/snapshot-proxy/{Path.GetFileName(s.snapshot)}",
                 ConfidenceScore = s.confidenceScore,
+                Status = s.status,
                 CreatedAt = TimeZoneInfo.ConvertTimeFromUtc(s.CreatedAt, timezone)
             }).ToListAsync();
 
             return Ok(snapshots);
 
+        }
+        [HttpPost("update-snapshot-status")]
+        public async Task<IActionResult> UpdateSnapshotStatus([FromBody] SnapshotStatusUpdateDto request)
+        {
+            var snapshot = await _context.Snapshots.FirstOrDefaultAsync(s => s.Id == request.SnapshotId);
+
+            if (snapshot == null)
+            {
+                return NotFound(new { message = $"Snapshot with ID {request.SnapshotId} not found." });
+            }
+
+            snapshot.status = request.Status;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Snapshot status updated successfully." });
+        }
+
+        [HttpGet("snapshot-proxy/{fileName}")]
+        public IActionResult SnapshotProxy(string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName))
+                return BadRequest("Invalid file name");
+
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Snapshots", fileName);
+
+            if (!System.IO.File.Exists(path))
+                return NotFound("File not found.");
+
+            var mimeType = "image/jpeg"; 
+            var fileStream = new FileStream(path, FileMode.Open, FileAccess.Read);
+            return File(fileStream, mimeType);
         }
 
         private async Task SendSmsNotification(int farmerId, string message)
@@ -126,6 +161,9 @@ namespace ManokDetectAPI.Controllers
             else
             {
                 Console.WriteLine("SMS sent successfully.");
+
+                farmer.LastSmsSentAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
         }
 
